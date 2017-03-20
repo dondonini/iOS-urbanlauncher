@@ -1,6 +1,6 @@
 //
 //  GameViewController.swift
-//  iOS-UrbanLauncher
+//  UrbanLauncher
 //
 //  Created by Tech on 2017-03-20.
 //  Copyright © 2017 Adrian&Edisson. All rights reserved.

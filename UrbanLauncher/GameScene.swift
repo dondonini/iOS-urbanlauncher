@@ -1,6 +1,6 @@
 //
 //  GameScene.swift
-//  iOS-UrbanLauncher
+//  UrbanLauncher
 //
 //  Created by Tech on 2017-03-20.
 //  Copyright © 2017 Adrian&Edisson. All rights reserved.
@@ -14,11 +14,7 @@ class GameScene: SKScene {
     private var label : SKLabelNode?
     private var spinnyNode : SKShapeNode?
     
-    private var b_Return : SKLabelNode?
-    
     override func didMove(to view: SKView) {
-        
-        b_Return = self.childNode(withName: "b_Return") as? SKLabelNode;
         
         // Get label node from scene and store it for use later
         self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
@@ -48,38 +44,6 @@ class GameScene: SKScene {
             n.strokeColor = SKColor.green
             self.addChild(n)
         }
-        
-        let reveal = SKTransition.flipVertical(withDuration: 1)
-        
-        print("Bitch");
-        
-        if (b_Return?.contains(pos))!
-        {
-            
-            //We load the scene from the sks file. make sure that the Custom class is set there that poinst to your swift file
-            
-            if let scene = GKScene(fileNamed: "VerdictScene") {
-                
-                // Get the SKScene from the loaded GKScene. Notice that we cast to our swift class MyScene in this case
-                if let sceneNode = scene.rootNode as! VerdictScene? {
-                    
-                    // Set the scale mode to scale to fit the window
-                    sceneNode.scaleMode = .aspectFill
-                    
-                    // Present the scene
-                    if let view = self.view {
-                        view.presentScene(sceneNode, transition: reveal);
-                        
-                        //Optional to show stats
-                        view.ignoresSiblingOrder = true
-                        
-                        view.showsFPS = true
-                        view.showsNodeCount = true
-                        
-                    }
-                }
-            }
-        }
     }
     
     func touchMoved(toPoint pos : CGPoint) {
@@ -88,8 +52,6 @@ class GameScene: SKScene {
             n.strokeColor = SKColor.blue
             self.addChild(n)
         }
-        
-        
     }
     
     func touchUp(atPoint pos : CGPoint) {
