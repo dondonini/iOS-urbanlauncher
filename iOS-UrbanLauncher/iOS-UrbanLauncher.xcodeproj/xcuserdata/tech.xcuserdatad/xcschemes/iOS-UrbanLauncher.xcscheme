@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "182BEE5A1E804E9B009CB5F6"
-               BuildableName = "UrbanLauncher.app"
-               BlueprintName = "UrbanLauncher"
-               ReferencedContainer = "container:UrbanLauncher.xcodeproj">
+               BlueprintIdentifier = "182BEE981E80649E009CB5F6"
+               BuildableName = "iOS-UrbanLauncher.app"
+               BlueprintName = "iOS-UrbanLauncher"
+               ReferencedContainer = "container:iOS-UrbanLauncher.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "182BEE5A1E804E9B009CB5F6"
-            BuildableName = "UrbanLauncher.app"
-            BlueprintName = "UrbanLauncher"
-            ReferencedContainer = "container:UrbanLauncher.xcodeproj">
+            BlueprintIdentifier = "182BEE981E80649E009CB5F6"
+            BuildableName = "iOS-UrbanLauncher.app"
+            BlueprintName = "iOS-UrbanLauncher"
+            ReferencedContainer = "container:iOS-UrbanLauncher.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -55,10 +55,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "182BEE5A1E804E9B009CB5F6"
-            BuildableName = "UrbanLauncher.app"
-            BlueprintName = "UrbanLauncher"
-            ReferencedContainer = "container:UrbanLauncher.xcodeproj">
+            BlueprintIdentifier = "182BEE981E80649E009CB5F6"
+            BuildableName = "iOS-UrbanLauncher.app"
+            BlueprintName = "iOS-UrbanLauncher"
+            ReferencedContainer = "container:iOS-UrbanLauncher.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -74,10 +74,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "182BEE5A1E804E9B009CB5F6"
-            BuildableName = "UrbanLauncher.app"
-            BlueprintName = "UrbanLauncher"
-            ReferencedContainer = "container:UrbanLauncher.xcodeproj">
+            BlueprintIdentifier = "182BEE981E80649E009CB5F6"
+            BuildableName = "iOS-UrbanLauncher.app"
+            BlueprintName = "iOS-UrbanLauncher"
+            ReferencedContainer = "container:iOS-UrbanLauncher.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
