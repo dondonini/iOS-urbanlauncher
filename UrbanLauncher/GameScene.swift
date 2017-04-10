@@ -11,12 +11,38 @@ import GameplayKit
 
 class GameScene: SKScene {
     
-    private var label : SKLabelNode?
-    private var spinnyNode : SKShapeNode?
+    // Player parameters
+    private var minAngle: Float32 = 0.0
+    private var maxAngle: Float32 = 90.0
+    private var currentAngle: Float32 = 0.0
+    private var angleSpeed: Float32 = 1.0
+    
+    private var jumpForceMultiplier: Float32 = 10.0
+    
+    private var minPower: Float32 = 0.0
+    private var maxPower: Float32 = 1.0
+    private var currentPower: Float32 = 0.0
+    private var powerSpeed: Float32 = 0.0
+    
+    // Building parameters
+    private var minBuildingWidth: Float32 = 50.0
+    private var maxBuildingWidth: Float32 = 150.0
+    
+    private var minBuildingHeight: Float32 = 75.0
+    private var maxBuildingHeight: Float32 = 300.0
+    
+    //private var label : SKLabelNode?
+    //private var spinnyNode : SKShapeNode?
+    
+    ////////
+    // Start
+    ////////
     
     override func didMove(to view: SKView) {
         
-        // Get label node from scene and store it for use later
+        
+        
+        /*// Get label node from scene and store it for use later
         self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
         if let label = self.label {
             label.alpha = 0.0
@@ -34,38 +60,43 @@ class GameScene: SKScene {
             spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
                                               SKAction.fadeOut(withDuration: 0.5),
                                               SKAction.removeFromParent()]))
-        }
+        }*/
     }
     
+    /////////////////
+    // Input controls
+    /////////////////
     
     func touchDown(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
+        /*if let n = self.spinnyNode?.copy() as! SKShapeNode? {
             n.position = pos
             n.strokeColor = SKColor.green
             self.addChild(n)
-        }
+        }*/
+        
+        
     }
     
     func touchMoved(toPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
+        /*if let n = self.spinnyNode?.copy() as! SKShapeNode? {
             n.position = pos
             n.strokeColor = SKColor.blue
             self.addChild(n)
-        }
+        }*/
     }
     
     func touchUp(atPoint pos : CGPoint) {
-        if let n = self.spinnyNode?.copy() as! SKShapeNode? {
+        /*if let n = self.spinnyNode?.copy() as! SKShapeNode? {
             n.position = pos
-            n.strokeColor = SKColor.red
-            self.addChild(n)
-        }
+            //n.strokeColor = SKColor.red
+            //self.addChild(n)
+        }*/
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if let label = self.label {
+        /*if let label = self.label {
             label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }
+        }*/
         
         for t in touches { self.touchDown(atPoint: t.location(in: self)) }
     }
@@ -85,5 +116,16 @@ class GameScene: SKScene {
     
     override func update(_ currentTime: TimeInterval) {
         // Called before each frame is rendered
+    }
+    
+    
+    func randomIntFrom(start: Int, to end: Int) -> Int {
+        var a = start
+        var b = end
+        // swap to prevent negative integer crashes
+        if a > b {
+            swap(&a, &b)
+        }
+        return Int(arc4random_uniform(UInt32(b - a + 1))) + a
     }
 }
