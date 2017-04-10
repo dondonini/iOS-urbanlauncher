@@ -6,15 +6,15 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "UrbanLauncher/GameScene.swift"
-            timestampString = "513543092.070974"
+            timestampString = "513552205.11653"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "12"
-            endingLineNumber = "12"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
             landmarkName = "GameScene"
             landmarkType = "3">
          </BreakpointContent>

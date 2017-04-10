@@ -9,7 +9,7 @@
 import SpriteKit
 import GameplayKit
 
-class GameScene: SKScene {
+class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Player parameters
     private var minAngle: Float32 = 0.0
@@ -31,6 +31,29 @@ class GameScene: SKScene {
     private var minBuildingHeight: Float32 = 75.0
     private var maxBuildingHeight: Float32 = 300.0
     
+    private var dothing: Float32 = 0.0
+    
+    // Modes
+    private enum modes
+    {
+        case Idle
+        case Angle
+        case Power
+    }
+    
+    private var currentMode: modes = modes.Idle
+    
+    // References
+    private var player = SKSpriteNode()
+    private var building = SKSpriteNode()
+    
+    private var powerBar = SKSpriteNode()
+    private var arrowAnchor = SKSpriteNode()
+    
+    
+    // Delta
+    private var delta: CFTimeInterval = 0.0
+    
     //private var label : SKLabelNode?
     //private var spinnyNode : SKShapeNode?
     
@@ -38,9 +61,21 @@ class GameScene: SKScene {
     // Start
     ////////
     
-    override func didMove(to view: SKView) {
+    override func didMove(to view: SKView)
+    {
+        player = self.childNode(withName: "Player") as! SKSpriteNode;
+        
+        building = self.childNode(withName: "Spawn") as! SKSpriteNode;
+
+        powerBar = player.childNode(withName: "PowerBar") as! SKSpriteNode;
+
+        arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode;
+
+        dothing = 1
         
         
+        // Keep this last!
+        self.physicsWorld.contactDelegate = self;
         
         /*// Get label node from scene and store it for use later
         self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
@@ -73,7 +108,7 @@ class GameScene: SKScene {
             n.strokeColor = SKColor.green
             self.addChild(n)
         }*/
-        
+        changeMode()
         
     }
     
@@ -113,19 +148,99 @@ class GameScene: SKScene {
         for t in touches { self.touchUp(atPoint: t.location(in: self)) }
     }
     
+    var lastUpdateTimeInterval: CFTimeInterval = 0
     
-    override func update(_ currentTime: TimeInterval) {
+    override func update(_ currentTime: CFTimeInterval)
+    {
         // Called before each frame is rendered
+        delta = currentTime - lastUpdateTimeInterval
+        
+        
+        
+        switch(currentMode)
+        {
+        case modes.Idle:
+            break;
+        case modes.Angle:
+            
+            let p: Float32 = sin(Float(currentTime) * angleSpeed) / 2 + 0.5
+            
+            currentAngle = (3.14 / 180) * lerp(minAngle, maxAngle, p)
+            
+            arrowAnchor.zRotation = CGFloat(currentAngle) * -1
+            
+            print(currentAngle)
+            
+            break;
+        case modes.Power:
+            break;
+        }
+        
+        
+        
+        lastUpdateTimeInterval = currentTime
     }
     
+    /////////////
+    // Collisions
+    /////////////
+    
+    func didBegin(_ contact: SKPhysicsContact)
+    {
+        print(String(describing: contact.bodyA.node?.name) + " hit " + String(describing: contact.bodyB.node?.name));
+        
+        if (contact.bodyA.node?.name == "Player")
+        {
+            switch (contact.bodyB.node?.name)
+            {
+            case "Spawn"?:
+                currentAngle = minAngle
+                currentMode = modes.Angle
+                break;
+            default:
+                break;
+            }
+        }
+        
+    }
+    
+    /////////
+    // Helper
+    /////////
     
     func randomIntFrom(start: Int, to end: Int) -> Int {
         var a = start
         var b = end
-        // swap to prevent negative integer crashes
+        
+        // Swap to prevent negative integer crashes
         if a > b {
             swap(&a, &b)
         }
         return Int(arc4random_uniform(UInt32(b - a + 1))) + a
+    }
+    
+    func lerp(_ v0: Float,_ v1: Float,_ t: Float) -> Float
+    {
+        return (1 - t) * v0 + t * v1;
+    }
+    
+    /////////////////
+    // Mode functions
+    /////////////////
+    
+    func changeMode()
+    {
+        switch(currentMode)
+        {
+        case modes.Idle:
+            currentMode = modes.Angle;
+            break;
+        case modes.Angle:
+            currentMode = modes.Power;
+            break;
+        case modes.Power:
+            currentMode = modes.Idle;
+            break;
+        }
     }
 }
