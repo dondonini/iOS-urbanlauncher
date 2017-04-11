@@ -12,26 +12,39 @@ import GameplayKit
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Player parameters
-    private var minAngle: Float32 = 0.0
-    private var maxAngle: Float32 = 90.0
-    private var currentAngle: Float32 = 0.0
-    private var angleSpeed: Float32 = 1.0
+    private var minAngle: Float = 0.0
+    private var maxAngle: Float = 90.0
+    private var currentAngle: Float = 0.0
+    private var angleSpeed: Float = 1.0
+    private var angleTime: Float = 0.0
     
-    private var jumpForceMultiplier: Float32 = 10.0
+    private var jumpForceMultiplier: Float = 500.0
     
-    private var minPower: Float32 = 0.0
-    private var maxPower: Float32 = 1.0
-    private var currentPower: Float32 = 0.0
-    private var powerSpeed: Float32 = 0.0
+    private var minPower: Float = 0.0
+    private var maxPower: Float = 1.0
+    private var currentPower: Float = 0.0
+    private var powerSpeed: Float = 0.0
+    private var powerTime: Float = 0.0
     
     // Building parameters
-    private var minBuildingWidth: Float32 = 50.0
-    private var maxBuildingWidth: Float32 = 150.0
+    private var minBuildingWidth: Float = 50.0
+    private var maxBuildingWidth: Float = 150.0
     
-    private var minBuildingHeight: Float32 = 75.0
-    private var maxBuildingHeight: Float32 = 300.0
+    private var minBuildingHeight: Float = 75.0
+    private var maxBuildingHeight: Float = 300.0
     
-    private var dothing: Float32 = 0.0
+    private var timeTakenDuringLerp: Float = 1.0
+    private var distanceToMove: Float = 10;
+    private var _isLerping: Bool = true;
+    
+    private var _startPosition: CGPoint = CGPoint(x: 0,y: 0);
+    private var _endPosition: CGPoint = CGPoint(x: 0,y: 0);
+    
+    private var _timeStartedLerping: Float = 0.0;
+    
+    
+    private var previousPosition: CGPoint = CGPoint(x: 0, y: 0)
+    private var doThing: Bool = true;
     
     // Modes
     private enum modes
@@ -49,6 +62,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var powerBar = SKSpriteNode()
     private var arrowAnchor = SKSpriteNode()
+    
+    private var mainCamera = SKCameraNode()
+    
+    //private var testBlock = SKSpriteNode()
+    
     
     
     // Delta
@@ -70,9 +88,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         powerBar = player.childNode(withName: "PowerBar") as! SKSpriteNode;
 
         arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode;
-
-        dothing = 1
         
+        mainCamera = self.childNode(withName: "MainCamera") as! SKCameraNode;
+        
+        //testBlock = self.childNode(withName: "Test") as! SKSpriteNode;
         
         // Keep this last!
         self.physicsWorld.contactDelegate = self;
@@ -103,12 +122,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     /////////////////
     
     func touchDown(atPoint pos : CGPoint) {
-        /*if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.green
-            self.addChild(n)
-        }*/
-        changeMode()
+        
+        switch(currentMode)
+        {
+        case modes.Angle:
+            powerTime = -1;
+            currentMode = modes.Power
+            break;
+            
+        case modes.Power:
+            launchPlayer()
+            currentMode = modes.Idle
+            break;
+            
+        default:
+            break;
+        }
         
     }
     
@@ -148,6 +177,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for t in touches { self.touchUp(atPoint: t.location(in: self)) }
     }
     
+    /////////
+    // Update
+    /////////
+    
     var lastUpdateTimeInterval: CFTimeInterval = 0
     
     override func update(_ currentTime: CFTimeInterval)
@@ -155,7 +188,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Called before each frame is rendered
         delta = currentTime - lastUpdateTimeInterval
         
+        /*if(doThing == false)
+        {
+            StartLerping(currentTime)
+            doThing = true;
+        }
         
+        if(_isLerping)
+        {
+            let timeSinceStarted: Float = Float(currentTime) - _timeStartedLerping
+            let percentageComplete: Float = timeSinceStarted / timeTakenDuringLerp
+            
+            mainCamera.position = lerpPoint(_startPosition, _endPosition, pow(percentageComplete, 0.5))
+            
+            if(percentageComplete >= 1)
+            {
+                _isLerping = false
+                doThing = true;
+                currentMode = modes.Angle
+            }
+        }*/
+        
+        mainCamera.position = lerpPoint(mainCamera.position, player.position, Float(delta) * 5)
         
         switch(currentMode)
         {
@@ -163,20 +217,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break;
         case modes.Angle:
             
-            let p: Float32 = sin(Float(currentTime) * angleSpeed) / 2 + 0.5
-            
-            currentAngle = (3.14 / 180) * lerp(minAngle, maxAngle, p)
-            
-            arrowAnchor.zRotation = CGFloat(currentAngle) * -1
-            
-            print(currentAngle)
+            angleTime += Float(delta)
+            updateAngle(angleTime)
             
             break;
         case modes.Power:
+            
+            powerTime += Float(delta)
+            updatePower(powerTime)
+            
             break;
         }
-        
-        
         
         lastUpdateTimeInterval = currentTime
     }
@@ -194,9 +245,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             switch (contact.bodyB.node?.name)
             {
             case "Spawn"?:
-                currentAngle = minAngle
-                currentMode = modes.Angle
+                groundTouched()
                 break;
+                
+            case "Top"?:
+                groundTouched()
+                break;
+                
             default:
                 break;
             }
@@ -208,7 +263,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Helper
     /////////
     
-    func randomIntFrom(start: Int, to end: Int) -> Int {
+    // Random Int
+    func randomRangeInt(start: Int, to end: Int) -> Int {
         var a = start
         var b = end
         
@@ -219,28 +275,100 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return Int(arc4random_uniform(UInt32(b - a + 1))) + a
     }
     
-    func lerp(_ v0: Float,_ v1: Float,_ t: Float) -> Float
+    // Random Int
+    func randomRangeFloat(start: Float, to end: Float) -> Float {
+        let accuracy: Float = 10000.0
+        
+        var a: Int = Int(start * accuracy)
+        var b: Int = Int(end * accuracy)
+        
+        // Swap to prevent negative integer crashes
+        if a > b {
+            swap(&a, &b)
+        }
+        let temp: Float = Float(Int(arc4random_uniform(UInt32(b - a + 1))) + a) / accuracy
+
+        return temp
+    }
+    
+    // Lerp function
+    func lerpFloat(_ v0: Float,_ v1: Float,_ t: Float) -> Float
     {
         return (1 - t) * v0 + t * v1;
     }
     
+    
+    // Lerp function
+    func lerpVector(_ v0: CGVector,_ v1: CGVector,_ t: Float) -> CGVector
+    {
+        return CGVector(
+            dx: CGFloat(lerpFloat(Float(v0.dx), Float(v1.dx), t)),
+            dy: CGFloat(lerpFloat(Float(v0.dy), Float(v1.dy), t))
+            )
+    }
+    
+    // Lerp function
+    func lerpPoint(_ v0: CGPoint,_ v1: CGPoint,_ t: Float) -> CGPoint
+    {
+        return CGPoint(
+            x: CGFloat(lerpFloat(Float(v0.x), Float(v1.x), t)),
+            y: CGFloat(lerpFloat(Float(v0.y), Float(v1.y), t))
+        )
+    }
+    
+    // Degree to Rad
+    func degToRad(_ deg: Float) -> Float
+    {
+        return (3.14 / 180) * deg
+    }
+    
+
     /////////////////
     // Mode functions
     /////////////////
     
-    func changeMode()
+    func updateAngle(_ t: Float)
     {
-        switch(currentMode)
-        {
-        case modes.Idle:
-            currentMode = modes.Angle;
-            break;
-        case modes.Angle:
-            currentMode = modes.Power;
-            break;
-        case modes.Power:
-            currentMode = modes.Idle;
-            break;
-        }
+        let p: Float = sin(Float(t) * angleSpeed) / 2.0 + 0.5
+        
+        currentAngle = degToRad(lerpFloat(minAngle, maxAngle, p))
+        
+        arrowAnchor.zRotation = CGFloat(currentAngle) - CGFloat(degToRad(90))
+    }
+    
+    func updatePower(_ t: Float)
+    {
+        let p: Float = sin(Float(t) * angleSpeed) / 2.0 + 0.5
+        
+        currentPower = lerpFloat(minPower, maxPower, p)
+        
+        powerBar.size = CGSize(width: powerBar.size.width, height: CGFloat((currentPower / maxPower) * Float(player.size.height)))
+    }
+    
+    func launchPlayer()
+    {
+        player.physicsBody?.applyImpulse(
+        CGVector(
+            dx: CGFloat(jumpForceMultiplier * currentPower * cos(currentAngle)),
+            dy: CGFloat(jumpForceMultiplier * currentPower * sin(currentAngle)))
+        )
+    }
+
+    func groundTouched()
+    {
+        angleTime = -1.5
+        currentMode = modes.Angle
+        //doThing = false
+        //_isLerping = true
+    }
+    
+    func StartLerping(_ ct: CFTimeInterval)
+    {
+        _isLerping = true;
+        _timeStartedLerping = Float(ct)
+        
+        _startPosition = mainCamera.position
+        _endPosition = player.position
+        
     }
 }
