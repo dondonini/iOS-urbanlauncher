@@ -20,7 +20,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var jumpForceMultiplier: Float = 500.0
     
-    private var minPower: Float = 0.0
+    private var minPower: Float = 0.1
     private var maxPower: Float = 1.0
     private var currentPower: Float = 0.0
     private var powerSpeed: Float = 0.0
@@ -35,16 +35,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var timeTakenDuringLerp: Float = 1.0
     private var distanceToMove: Float = 10;
-    private var _isLerping: Bool = true;
-    
-    private var _startPosition: CGPoint = CGPoint(x: 0,y: 0);
-    private var _endPosition: CGPoint = CGPoint(x: 0,y: 0);
-    
-    private var _timeStartedLerping: Float = 0.0;
-    
     
     private var previousPosition: CGPoint = CGPoint(x: 0, y: 0)
-    private var doThing: Bool = true;
     
     // Modes
     private enum modes
@@ -65,9 +57,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var mainCamera = SKCameraNode()
     
+    private var mainStoryboard = UIStoryboard()
+    private var vc = UIViewController()
+    private var gc = UIViewController()
+    private var appDelegate = AppDelegate()
+    
     //private var testBlock = SKSpriteNode()
-    
-    
     
     // Delta
     private var delta: CFTimeInterval = 0.0
@@ -81,13 +76,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func didMove(to view: SKView)
     {
+        mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        vc = mainStoryboard.instantiateViewController(withIdentifier: "Verdict")
+        gc = mainStoryboard.instantiateViewController(withIdentifier: "Game")
+        
+        appDelegate = UIApplication.shared.delegate as! AppDelegate
+        
         player = self.childNode(withName: "Player") as! SKSpriteNode;
         
         building = self.childNode(withName: "Spawn") as! SKSpriteNode;
 
-        powerBar = player.childNode(withName: "PowerBar") as! SKSpriteNode;
-
         arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode;
+        
+        powerBar = arrowAnchor.childNode(withName: "PowerBar") as! SKSpriteNode;
         
         mainCamera = self.childNode(withName: "MainCamera") as! SKCameraNode;
         
@@ -139,6 +140,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break;
         }
         
+        updateVisuals()
     }
     
     func touchMoved(toPoint pos : CGPoint) {
@@ -181,6 +183,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Update
     /////////
     
+    // Keep previous time interval
     var lastUpdateTimeInterval: CFTimeInterval = 0
     
     override func update(_ currentTime: CFTimeInterval)
@@ -188,28 +191,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Called before each frame is rendered
         delta = currentTime - lastUpdateTimeInterval
         
-        /*if(doThing == false)
-        {
-            StartLerping(currentTime)
-            doThing = true;
-        }
-        
-        if(_isLerping)
-        {
-            let timeSinceStarted: Float = Float(currentTime) - _timeStartedLerping
-            let percentageComplete: Float = timeSinceStarted / timeTakenDuringLerp
-            
-            mainCamera.position = lerpPoint(_startPosition, _endPosition, pow(percentageComplete, 0.5))
-            
-            if(percentageComplete >= 1)
-            {
-                _isLerping = false
-                doThing = true;
-                currentMode = modes.Angle
-            }
-        }*/
-        
-        mainCamera.position = lerpPoint(mainCamera.position, player.position, Float(delta) * 5)
+        followCamera(player.position)
         
         switch(currentMode)
         {
@@ -232,6 +214,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         lastUpdateTimeInterval = currentTime
     }
     
+    func followCamera(_ target: CGPoint)
+    {
+        let move = clamp(value: Float(delta), lower: 0.0, upper: 0.5)
+        
+        var newPosition: CGPoint = lerpPoint(mainCamera.position, target, Float(move) * 5)
+        
+        newPosition.y = mainCamera.position.y;
+        
+        mainCamera.position = newPosition
+
+    }
+    
     /////////////
     // Collisions
     /////////////
@@ -252,6 +246,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 groundTouched()
                 break;
                 
+            case "EndGameTrigger"?:
+                sendToController()
+                break;
             default:
                 break;
             }
@@ -275,7 +272,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return Int(arc4random_uniform(UInt32(b - a + 1))) + a
     }
     
-    // Random Int
+    // Random Float
     func randomRangeFloat(start: Float, to end: Float) -> Float {
         let accuracy: Float = 10000.0
         
@@ -291,14 +288,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return temp
     }
     
-    // Lerp function
+    // Lerp function for Float
     func lerpFloat(_ v0: Float,_ v1: Float,_ t: Float) -> Float
     {
         return (1 - t) * v0 + t * v1;
     }
     
     
-    // Lerp function
+    // Lerp function for CGVector
     func lerpVector(_ v0: CGVector,_ v1: CGVector,_ t: Float) -> CGVector
     {
         return CGVector(
@@ -307,7 +304,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             )
     }
     
-    // Lerp function
+    // Lerp function for CGPoint
     func lerpPoint(_ v0: CGPoint,_ v1: CGPoint,_ t: Float) -> CGPoint
     {
         return CGPoint(
@@ -322,11 +319,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return (3.14 / 180) * deg
     }
     
+    // Clamp function
+    func clamp<T: Comparable>(value: T, lower: T, upper: T) -> T {
+        return min(max(value, lower), upper)
+    }
 
     /////////////////
     // Mode functions
     /////////////////
     
+    // Update angle visual
     func updateAngle(_ t: Float)
     {
         let p: Float = sin(Float(t) * angleSpeed) / 2.0 + 0.5
@@ -336,6 +338,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         arrowAnchor.zRotation = CGFloat(currentAngle) - CGFloat(degToRad(90))
     }
     
+    // Update power visual
     func updatePower(_ t: Float)
     {
         let p: Float = sin(Float(t) * angleSpeed) / 2.0 + 0.5
@@ -345,8 +348,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         powerBar.size = CGSize(width: powerBar.size.width, height: CGFloat((currentPower / maxPower) * Float(player.size.height)))
     }
     
+    // Launch player into air
     func launchPlayer()
     {
+        // Enable physics on player
+        //player.physicsBody?.isDynamic = true
+        
+        // Applies impulse to player
         player.physicsBody?.applyImpulse(
         CGVector(
             dx: CGFloat(jumpForceMultiplier * currentPower * cos(currentAngle)),
@@ -356,19 +364,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     func groundTouched()
     {
+        // Disable physics on player
+        //player.physicsBody?.isDynamic = false
+        
+        // Set angle time to beginning
         angleTime = -1.5
+        
+        // Set mode
         currentMode = modes.Angle
-        //doThing = false
-        //_isLerping = true
+        
+        // Update visuals
+        updateVisuals()
     }
     
-    func StartLerping(_ ct: CFTimeInterval)
+    // Update all player visuals
+    func updateVisuals()
     {
-        _isLerping = true;
-        _timeStartedLerping = Float(ct)
-        
-        _startPosition = mainCamera.position
-        _endPosition = player.position
-        
+        switch(currentMode)
+        {
+        case modes.Angle:   // Show arrow only
+            powerBar.isHidden = true
+            arrowAnchor.isHidden = false
+            break;
+        case modes.Power:   // Show both arrow and bar
+            powerBar.isHidden = false
+            arrowAnchor.isHidden = false
+            break;
+        case modes.Idle:    // Hide both arrow and bar
+            powerBar.isHidden = true
+            arrowAnchor.isHidden = true
+            break;
+        }
+    }
+    
+    ///////////////
+    // "Transition"
+    ///////////////
+    
+    func sendToController()
+    {
+        appDelegate.window?.rootViewController? = vc
+        //appDelegate.window?.rootViewController?.present(vc, animated: true, completion: nil)
     }
 }
