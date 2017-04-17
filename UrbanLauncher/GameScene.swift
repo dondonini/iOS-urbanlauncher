@@ -38,6 +38,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var previousPosition: CGPoint = CGPoint(x: 0, y: 0)
     
+    // Camera perameters
+    
+    private var cameraXOffset: Float = 250.0
+    
     // Modes
     private enum modes
     {
@@ -64,7 +68,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     //private var testBlock = SKSpriteNode()
     
-    // Delta
+    // Delta time
     private var delta: CFTimeInterval = 0.0
     
     //private var label : SKLabelNode?
@@ -189,7 +193,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func update(_ currentTime: CFTimeInterval)
     {
         // Called before each frame is rendered
-        delta = currentTime - lastUpdateTimeInterval
+        delta = clamp(value: currentTime - lastUpdateTimeInterval, lower: 0.0, upper: 1.0)
         
         followCamera(player.position)
         
@@ -216,9 +220,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func followCamera(_ target: CGPoint)
     {
-        let move = clamp(value: Float(delta), lower: 0.0, upper: 0.5)
+        let move = delta
         
-        var newPosition: CGPoint = lerpPoint(mainCamera.position, target, Float(move) * 5)
+        var goalPosition: CGPoint = target
+        
+        goalPosition.x = goalPosition.x + CGFloat(cameraXOffset)
+        
+        var newPosition: CGPoint = lerpPoint(
+            mainCamera.position
+            , goalPosition
+            , Float(move) * 5
+        )
         
         newPosition.y = mainCamera.position.y;
         
