@@ -11,6 +11,9 @@ import GameplayKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    // Instances
+    private var playerData = PlayerData()
+    
     // Player parameters
     private var minAngle: Float = 0.0
     private var maxAngle: Float = 90.0
@@ -27,19 +30,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var powerTime: Float = 0.0
     
     // Building parameters
-    private var minBuildingWidth: Float = 50.0
-    private var maxBuildingWidth: Float = 150.0
-    
-    private var minBuildingHeight: Float = 75.0
-    private var maxBuildingHeight: Float = 300.0
-    
-    private var timeTakenDuringLerp: Float = 1.0
-    private var distanceToMove: Float = 10;
-    
-    private var previousPosition: CGPoint = CGPoint(x: 0, y: 0)
+    private var minBuildingGapWidth: Float = 50.0
+    private var maxBuildingGapWidth: Float = 150.0
     
     // Camera perameters
-    
     private var cameraXOffset: Float = 250.0
     
     // Modes
@@ -66,6 +60,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var gc = UIViewController()
     private var appDelegate = AppDelegate()
     
+    private var coin = SKSpriteNode()
+    
+    private var scoreOffsetPos = SKNode()
+    
+    // Available buildings to spawn
+    private var availableBuildings = [SKSpriteNode]()
+    
+    private var previousBuildingPosition = CGPoint()
+    
     //private var testBlock = SKSpriteNode()
     
     // Delta time
@@ -80,21 +83,43 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func didMove(to view: SKView)
     {
+        playerData = PlayerData.sharedInstance
+        
         mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
         vc = mainStoryboard.instantiateViewController(withIdentifier: "Verdict")
         gc = mainStoryboard.instantiateViewController(withIdentifier: "Game")
         
         appDelegate = UIApplication.shared.delegate as! AppDelegate
         
-        player = self.childNode(withName: "Player") as! SKSpriteNode;
+        player = self.childNode(withName: "Player") as! SKSpriteNode
         
-        building = self.childNode(withName: "Spawn") as! SKSpriteNode;
+        building = self.childNode(withName: "Spawn") as! SKSpriteNode
 
-        arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode;
+        arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode
         
-        powerBar = arrowAnchor.childNode(withName: "PowerBar") as! SKSpriteNode;
+        powerBar = arrowAnchor.childNode(withName: "PowerBar") as! SKSpriteNode
         
-        mainCamera = self.childNode(withName: "MainCamera") as! SKCameraNode;
+        mainCamera = self.childNode(withName: "MainCamera") as! SKCameraNode
+        
+        scoreOffsetPos = self.childNode(withName: "ScoreOffset")!
+        
+        previousBuildingPosition = scoreOffsetPos.position
+        
+        // Adding buildings
+        
+        availableBuildings.append(self.childNode(withName: "Building1") as! SKSpriteNode)
+        availableBuildings.append(self.childNode(withName: "Building2") as! SKSpriteNode)
+        availableBuildings.append(self.childNode(withName: "Building3") as! SKSpriteNode)
+        
+        /*let testBuilding = availableBuildings[0].copy() as! SKSpriteNode
+        
+        self.addChild(testBuilding)
+        
+        print(testBuilding.position)
+        
+        testBuilding.position = CGPoint(x: 0, y:0)*/
+        
+        //availableBuildings.append(self.childNode(withName: "Building4") as! SKSpriteNode)
         
         //testBlock = self.childNode(withName: "Test") as! SKSpriteNode;
         
@@ -120,6 +145,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                                               SKAction.fadeOut(withDuration: 0.5),
                                               SKAction.removeFromParent()]))
         }*/
+        
+        spawnNewBuilding()
     }
     
     /////////////////
@@ -254,7 +281,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 groundTouched()
                 break;
                 
-            case "Top"?:
+            case "BuildingTop"?:
                 groundTouched()
                 break;
                 
@@ -266,6 +293,52 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         }
         
+        /*if (contact.bodyB.node?.name == "DeleteBuildingTrigger")
+        {
+            let other = contact.bodyA.node
+            
+            print("Deleted: " + String(describing: other?.name!))
+            print("Delete\(other?.name)")
+        }*/
+        
+    }
+    
+    /////////////////
+    // Map Generation
+    /////////////////
+    
+    func spawnNewBuilding()
+    {
+        // Randomly picked index
+        let randPick = randomRangeInt(start: 0, to: availableBuildings.count)
+        
+        // Copied selected building
+        let selectedBuilding = availableBuildings[randPick].copy() as! SKSpriteNode
+        
+        // Added to world
+        self.addChild(selectedBuilding)
+        
+        let newPosition: CGPoint = fetchRandomBuildingPosition(selectedBuilding)
+        
+        selectedBuilding.position = newPosition
+    }
+    
+    
+    // private float whereToSpawnBuilding;
+    func fetchRandomBuildingPosition(_ selectedBuilding: SKSpriteNode) -> CGPoint
+    {
+        //spawnbuilding at wheretospawnbuilding
+        //subtract the width / 2 to wherespawnbuilding
+        
+        var randGapX = CGFloat(randomRangeFloat(start: minBuildingGapWidth, to: maxBuildingGapWidth))
+        
+        randGapX += selectedBuilding.size.width / 2
+        
+        let randGapY = selectedBuilding.size.height / 2;
+        
+        previousBuildingPosition = CGPoint(x: randGapX, y: previousBuildingPosition.y)
+        
+        return CGPoint(x: randGapX, y: randGapY)
     }
     
     /////////

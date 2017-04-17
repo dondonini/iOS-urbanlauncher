@@ -18,6 +18,7 @@
 		182BEE7B1E805BB5009CB5F6 /* MainMenuViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BEE7A1E805BB5009CB5F6 /* MainMenuViewController.swift */; };
 		182BEE861E805DA8009CB5F6 /* CreditsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BEE851E805DA8009CB5F6 /* CreditsViewController.swift */; };
 		182BEE8D1E805F36009CB5F6 /* VerdictViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BEE8C1E805F36009CB5F6 /* VerdictViewController.swift */; };
+		189FA3DB1EA543B7009F2B63 /* PlayerData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 189FA3DA1EA543B7009F2B63 /* PlayerData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 		182BEE7A1E805BB5009CB5F6 /* MainMenuViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainMenuViewController.swift; sourceTree = "<group>"; };
 		182BEE851E805DA8009CB5F6 /* CreditsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreditsViewController.swift; sourceTree = "<group>"; };
 		182BEE8C1E805F36009CB5F6 /* VerdictViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerdictViewController.swift; sourceTree = "<group>"; };
+		189FA3DA1EA543B7009F2B63 /* PlayerData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 				182BEE601E804E9B009CB5F6 /* GameScene.sks */,
 				182BEE661E804E9B009CB5F6 /* GameViewController.swift */,
 				182BEE641E804E9B009CB5F6 /* GameScene.swift */,
+				189FA3DA1EA543B7009F2B63 /* PlayerData.swift */,
 			);
 			name = Game;
 			sourceTree = "<group>";
@@ -189,6 +192,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				182BEE7B1E805BB5009CB5F6 /* MainMenuViewController.swift in Sources */,
+				189FA3DB1EA543B7009F2B63 /* PlayerData.swift in Sources */,
 				182BEE8D1E805F36009CB5F6 /* VerdictViewController.swift in Sources */,
 				182BEE651E804E9B009CB5F6 /* GameScene.swift in Sources */,
 				182BEE671E804E9B009CB5F6 /* GameViewController.swift in Sources */,
