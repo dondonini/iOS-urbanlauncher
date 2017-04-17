@@ -12,13 +12,16 @@ import GameplayKit
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Instances
-    private var playerData = PlayerData()
+    private var playerData: PlayerData = PlayerData.sharedInstance
     
     // Player parameters
     private var minAngle: Float = 0.0
-    private var maxAngle: Float = 90.0
+    
+    // We changed this from 90 to 100 because the player would sometimes get stuck on a building and couldn't progress
+    // So, we forced them to back-track
+    private var maxAngle: Float = 100.0
     private var currentAngle: Float = 0.0
-    private var angleSpeed: Float = 1.0
+    private var angleSpeed: Float = 1.5
     private var angleTime: Float = 0.0
     
     private var jumpForceMultiplier: Float = 500.0
@@ -30,8 +33,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var powerTime: Float = 0.0
     
     // Building parameters
-    private var minBuildingGapWidth: Float = 50.0
-    private var maxBuildingGapWidth: Float = 150.0
+    private var minBuildingGapWidth: Float = 0.0
+    private var maxBuildingGapWidth: Float = 100.0
     
     // Camera perameters
     private var cameraXOffset: Float = 250.0
@@ -54,6 +57,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var arrowAnchor = SKSpriteNode()
     
     private var mainCamera = SKCameraNode()
+    private var cameraBR = SKNode()
     
     private var mainStoryboard = UIStoryboard()
     private var vc = UIViewController()
@@ -65,7 +69,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     private var scoreOffsetPos = SKNode()
     
     // Available buildings to spawn
-    private var availableBuildings = [SKSpriteNode]()
+    private var availableBuildings = [SKNode]()
     
     private var previousBuildingPosition = CGPoint()
     
@@ -83,7 +87,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     override func didMove(to view: SKView)
     {
-        playerData = PlayerData.sharedInstance
         
         mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
         vc = mainStoryboard.instantiateViewController(withIdentifier: "Verdict")
@@ -103,13 +106,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         scoreOffsetPos = self.childNode(withName: "ScoreOffset")!
         
+        cameraBR = mainCamera.childNode(withName: "BR")!
+        
         previousBuildingPosition = scoreOffsetPos.position
         
         // Adding buildings
         
-        availableBuildings.append(self.childNode(withName: "Building1") as! SKSpriteNode)
-        availableBuildings.append(self.childNode(withName: "Building2") as! SKSpriteNode)
-        availableBuildings.append(self.childNode(withName: "Building3") as! SKSpriteNode)
+        availableBuildings.append(self.childNode(withName: "Building1")!)
+        availableBuildings.append(self.childNode(withName: "Building2")!)
+        availableBuildings.append(self.childNode(withName: "Building3")!)
         
         /*let testBuilding = availableBuildings[0].copy() as! SKSpriteNode
         
@@ -146,7 +151,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                                               SKAction.removeFromParent()]))
         }*/
         
-        spawnNewBuilding()
+        //spawnNewBuilding()
     }
     
     /////////////////
@@ -242,6 +247,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             break;
         }
         
+        // Building spawning
+        
+        if (previousBuildingPosition.x < cameraBR.position.x + mainCamera.position.x)
+        {
+            spawnNewBuilding()
+        }
+        
         lastUpdateTimeInterval = currentTime
     }
     
@@ -288,6 +300,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             case "EndGameTrigger"?:
                 sendToController()
                 break;
+                
             default:
                 break;
             }
@@ -310,10 +323,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func spawnNewBuilding()
     {
         // Randomly picked index
-        let randPick = randomRangeInt(start: 0, to: availableBuildings.count)
+        let randPick = randomRangeInt(start: 0, to: availableBuildings.count - 1)
         
         // Copied selected building
-        let selectedBuilding = availableBuildings[randPick].copy() as! SKSpriteNode
+        let selectedBuilding = availableBuildings[randPick].copy() as! SKNode
         
         // Added to world
         self.addChild(selectedBuilding)
@@ -325,18 +338,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     
     // private float whereToSpawnBuilding;
-    func fetchRandomBuildingPosition(_ selectedBuilding: SKSpriteNode) -> CGPoint
+    func fetchRandomBuildingPosition(_ selectedBuilding: SKNode) -> CGPoint
     {
-        //spawnbuilding at wheretospawnbuilding
-        //subtract the width / 2 to wherespawnbuilding
+        // Spawnbuilding at wheretospawnbuilding
+        // Subtract the width / 2 to wherespawnbuilding
         
-        var randGapX = CGFloat(randomRangeFloat(start: minBuildingGapWidth, to: maxBuildingGapWidth))
+        // Get building size
+        let buildingBody = selectedBuilding.childNode(withName: "Body") as! SKSpriteNode
+        let buildingSize: CGSize = buildingBody.size
         
-        randGapX += selectedBuilding.size.width / 2
+        buildingBody.zPosition = -1
         
-        let randGapY = selectedBuilding.size.height / 2;
+        // Calculate X
+        var randGapX = previousBuildingPosition.x
+        randGapX += CGFloat(randomRangeFloat(start: minBuildingGapWidth, to: maxBuildingGapWidth))
+        randGapX += buildingSize.width / 2
         
-        previousBuildingPosition = CGPoint(x: randGapX, y: previousBuildingPosition.y)
+        // Calculate Y
+        var randGapY = previousBuildingPosition.y
+        randGapY += CGFloat(lerpFloat(0, Float(buildingSize.height / 2), randomRangeFloat(start: 0.0, to: 1.0)))
+        
+        previousBuildingPosition = CGPoint(x: randGapX + buildingSize.width / 2, y: previousBuildingPosition.y)
         
         return CGPoint(x: randGapX, y: randGapY)
     }
