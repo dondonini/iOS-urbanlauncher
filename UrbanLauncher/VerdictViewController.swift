@@ -10,9 +10,18 @@ import UIKit
 
 class VerdictViewController: UIViewController {
     
+    @IBOutlet weak var playerScore: UILabel!
+    @IBOutlet weak var highScoreText: UILabel!
+    
+    var playerData: PlayerData = PlayerData.sharedInstance
+    
     override func viewDidLoad()
     {
         super.viewDidLoad()
+        
+        playerScore.text = String(playerData.getScore())
+        highScoreText.text = String(playerData.getHighScore())
+        
         
     }
     

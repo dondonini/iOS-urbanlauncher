@@ -37,7 +37,7 @@ class PlayerData
     
     public func addToScore(_ newScore: Int)
     {
-        score += newScore
+        setScore(score + newScore)
     }
     
     public func getHighScore() -> Int

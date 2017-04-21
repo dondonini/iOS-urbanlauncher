@@ -14,6 +14,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Instances
     private var playerData: PlayerData = PlayerData.sharedInstance
     
+    // Scoring
+    private var coinWorth: Int = 20
+    private var coinMaxHeight: Float = 200.0
+    
+    private var distanceWorth: Int = 10
+    private var distanceWidth: Float = 50.0
+    
     // Player parameters
     private var minAngle: Float = 0.0
     
@@ -49,109 +56,103 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     private var currentMode: modes = modes.Idle
     
+    /////////////
     // References
-    private var player = SKSpriteNode()
-    private var building = SKSpriteNode()
+    /////////////
     
+    // ??
+    private var appDelegate = AppDelegate()
+    
+    // Player
+    private var player = SKSpriteNode()
     private var powerBar = SKSpriteNode()
     private var arrowAnchor = SKSpriteNode()
     
-    private var mainCamera = SKCameraNode()
-    private var cameraBR = SKNode()
-    
+    // Map
+    private var building = SKSpriteNode()
+
+    // UI
+    private var scoreText = SKLabelNode()
+    private var highScoreText = SKLabelNode()
+    private var distanceScoreText = SKLabelNode()
     private var mainStoryboard = UIStoryboard()
     private var vc = UIViewController()
     private var gc = UIViewController()
-    private var appDelegate = AppDelegate()
     
+    // Camera
+    private var mainCamera = SKCameraNode()
+    private var cameraBR = SKNode()
+    
+    // Coin
     private var coin = SKSpriteNode()
-    
-    private var scoreOffsetPos = SKNode()
     
     // Available buildings to spawn
     private var availableBuildings = [SKNode]()
     
+    // Scoring offset
+    private var scoreOffsetPos = SKNode()
+    
+    ////////////////////
+    // Runtime Variables
+    ////////////////////
+    
     private var previousBuildingPosition = CGPoint()
     
-    //private var testBlock = SKSpriteNode()
+    private var previousLandingX: CGFloat = 0
+    private var distanceFromLastLanding: Float = 0
     
     // Delta time
     private var delta: CFTimeInterval = 0.0
     
-    //private var label : SKLabelNode?
-    //private var spinnyNode : SKShapeNode?
-    
-    ////////
-    // Start
-    ////////
+    /////////////////
+    // Start Function
+    /////////////////
     
     override func didMove(to view: SKView)
     {
+        appDelegate = UIApplication.shared.delegate as! AppDelegate
         
+        // Player
+        player = self.childNode(withName: "Player") as! SKSpriteNode
+        arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode
+        powerBar = arrowAnchor.childNode(withName: "PowerBar") as! SKSpriteNode
+        
+        // Map
+        building = self.childNode(withName: "Spawn") as! SKSpriteNode
+
+        // Camera
+        mainCamera = self.childNode(withName: "MainCamera") as! SKCameraNode
+        cameraBR = mainCamera.childNode(withName: "BR")!
+        
+        // Scoring offset
+        scoreOffsetPos = self.childNode(withName: "ScoreOffset")!
+        
+        // UI
         mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
         vc = mainStoryboard.instantiateViewController(withIdentifier: "Verdict")
         gc = mainStoryboard.instantiateViewController(withIdentifier: "Game")
-        
-        appDelegate = UIApplication.shared.delegate as! AppDelegate
-        
-        player = self.childNode(withName: "Player") as! SKSpriteNode
-        
-        building = self.childNode(withName: "Spawn") as! SKSpriteNode
-
-        arrowAnchor = player.childNode(withName: "Arrow") as! SKSpriteNode
-        
-        powerBar = arrowAnchor.childNode(withName: "PowerBar") as! SKSpriteNode
-        
-        mainCamera = self.childNode(withName: "MainCamera") as! SKCameraNode
-        
-        scoreOffsetPos = self.childNode(withName: "ScoreOffset")!
-        
-        cameraBR = mainCamera.childNode(withName: "BR")!
+        scoreText = mainCamera.childNode(withName: "ScoreText") as! SKLabelNode
+        highScoreText = mainCamera.childNode(withName: "HighScoreText") as! SKLabelNode
+        distanceScoreText = scoreText.childNode(withName: "DistanceScoreText") as! SKLabelNode
         
         previousBuildingPosition = scoreOffsetPos.position
         
         // Adding buildings
-        
         availableBuildings.append(self.childNode(withName: "Building1")!)
         availableBuildings.append(self.childNode(withName: "Building2")!)
         availableBuildings.append(self.childNode(withName: "Building3")!)
         
-        /*let testBuilding = availableBuildings[0].copy() as! SKSpriteNode
+        // Coin
+        coin = self.childNode(withName: "Coin") as! SKSpriteNode
         
-        self.addChild(testBuilding)
+        // Reset score
+        playerData.setScore(0)
         
-        print(testBuilding.position)
-        
-        testBuilding.position = CGPoint(x: 0, y:0)*/
-        
-        //availableBuildings.append(self.childNode(withName: "Building4") as! SKSpriteNode)
-        
-        //testBlock = self.childNode(withName: "Test") as! SKSpriteNode;
+        // Reset previous position X
+        previousLandingX = player.position.x
         
         // Keep this last!
         self.physicsWorld.contactDelegate = self;
-        
-        /*// Get label node from scene and store it for use later
-        self.label = self.childNode(withName: "//helloLabel") as? SKLabelNode
-        if let label = self.label {
-            label.alpha = 0.0
-            label.run(SKAction.fadeIn(withDuration: 2.0))
-        }
-        
-        // Create shape node to use during mouse interaction
-        let w = (self.size.width + self.size.height) * 0.05
-        self.spinnyNode = SKShapeNode.init(rectOf: CGSize.init(width: w, height: w), cornerRadius: w * 0.3)
-        
-        if let spinnyNode = self.spinnyNode {
-            spinnyNode.lineWidth = 2.5
-            
-            spinnyNode.run(SKAction.repeatForever(SKAction.rotate(byAngle: CGFloat(M_PI), duration: 1)))
-            spinnyNode.run(SKAction.sequence([SKAction.wait(forDuration: 0.5),
-                                              SKAction.fadeOut(withDuration: 0.5),
-                                              SKAction.removeFromParent()]))
-        }*/
-        
-        //spawnNewBuilding()
     }
     
     /////////////////
@@ -179,40 +180,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         updateVisuals()
     }
     
-    func touchMoved(toPoint pos : CGPoint) {
-        /*if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            n.strokeColor = SKColor.blue
-            self.addChild(n)
-        }*/
-    }
-    
-    func touchUp(atPoint pos : CGPoint) {
-        /*if let n = self.spinnyNode?.copy() as! SKShapeNode? {
-            n.position = pos
-            //n.strokeColor = SKColor.red
-            //self.addChild(n)
-        }*/
-    }
-    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        /*if let label = self.label {
-            label.run(SKAction.init(named: "Pulse")!, withKey: "fadeInOut")
-        }*/
-        
         for t in touches { self.touchDown(atPoint: t.location(in: self)) }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchMoved(toPoint: t.location(in: self)) }
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        for t in touches { self.touchUp(atPoint: t.location(in: self)) }
     }
     
     /////////
@@ -222,10 +191,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Keep previous time interval
     var lastUpdateTimeInterval: CFTimeInterval = 0
     
+    // Main Update
     override func update(_ currentTime: CFTimeInterval)
     {
         // Called before each frame is rendered
-        delta = clamp(value: currentTime - lastUpdateTimeInterval, lower: 0.0, upper: 1.0)
+        delta = Mathf.clamp(value: currentTime - lastUpdateTimeInterval, lower: 0.0, upper: 1.0)
         
         followCamera(player.position)
         
@@ -248,15 +218,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Building spawning
-        
         if (previousBuildingPosition.x < cameraBR.position.x + mainCamera.position.x)
         {
             spawnNewBuilding()
         }
         
+        // Calculate real-time distance from previous spot
+        let realDistance: Float = Float(Mathf.distance(previousLandingX, player.position.x))
+        
+        let realScore: Int = Int(roundf(realDistance / distanceWidth)) * distanceWorth
+        
+        // Update UI
+        updateScore(playerData.getScore())
+        updateHighScore(playerData.getHighScore())
+        updateDistanceScoreText(realScore)
+        
+        // KEEP LAST!
         lastUpdateTimeInterval = currentTime
     }
     
+    // Updates camera position relative to target
     func followCamera(_ target: CGPoint)
     {
         let move = delta
@@ -265,7 +246,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         goalPosition.x = goalPosition.x + CGFloat(cameraXOffset)
         
-        var newPosition: CGPoint = lerpPoint(
+        var newPosition: CGPoint = Mathf.lerpPoint(
             mainCamera.position
             , goalPosition
             , Float(move) * 5
@@ -275,6 +256,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         mainCamera.position = newPosition
 
+    }
+    
+    // Updates score UI
+    func updateScore(_ newScore: Int)
+    {
+        scoreText.text = String.init(format: "Score: %i", newScore)
+    }
+    
+    // Updates high score UI
+    func updateHighScore(_ newScore: Int)
+    {
+        highScoreText.text = String.init(format: "High Score: %i", newScore)
+    }
+    
+    func updateDistanceScoreText(_ newScore: Int)
+    {
+        if (newScore == 0)
+        {
+            distanceScoreText.isHidden = true
+        }
+        else
+        {
+            distanceScoreText.isHidden = false
+            
+            distanceScoreText.text = String.init(format: "+%i", newScore)
+        }
     }
     
     /////////////
@@ -297,6 +304,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 groundTouched()
                 break;
                 
+            case "Coin"?:
+                coinCollected(contact.bodyB.node as! SKSpriteNode)
+                break;
+                
             case "EndGameTrigger"?:
                 sendToController()
                 break;
@@ -305,15 +316,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 break;
             }
         }
-        
-        /*if (contact.bodyB.node?.name == "DeleteBuildingTrigger")
-        {
-            let other = contact.bodyA.node
-            
-            print("Deleted: " + String(describing: other?.name!))
-            print("Delete\(other?.name)")
-        }*/
-        
     }
     
     /////////////////
@@ -323,7 +325,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func spawnNewBuilding()
     {
         // Randomly picked index
-        let randPick = randomRangeInt(start: 0, to: availableBuildings.count - 1)
+        let randPick = Random.RangeInt(start: 0, to: availableBuildings.count - 1)
         
         // Copied selected building
         let selectedBuilding = availableBuildings[randPick].copy() as! SKNode
@@ -334,6 +336,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let newPosition: CGPoint = fetchRandomBuildingPosition(selectedBuilding)
         
         selectedBuilding.position = newPosition
+        
+        if (Random.Bool())
+        {
+            spawnCoinOverPosition(newPosition)
+        }
     }
     
     
@@ -351,84 +358,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Calculate X
         var randGapX = previousBuildingPosition.x
-        randGapX += CGFloat(randomRangeFloat(start: minBuildingGapWidth, to: maxBuildingGapWidth))
+        randGapX += CGFloat(Random.RangeFloat(start: minBuildingGapWidth, to: maxBuildingGapWidth))
         randGapX += buildingSize.width / 2
         
         // Calculate Y
         var randGapY = previousBuildingPosition.y
-        randGapY += CGFloat(lerpFloat(0, Float(buildingSize.height / 2), randomRangeFloat(start: 0.0, to: 1.0)))
+        randGapY += CGFloat(Mathf.lerpFloat(0, Float(buildingSize.height / 2), Random.RangeFloat(start: 0.0, to: 1.0)))
         
         previousBuildingPosition = CGPoint(x: randGapX + buildingSize.width / 2, y: previousBuildingPosition.y)
         
         return CGPoint(x: randGapX, y: randGapY)
-    }
-    
-    /////////
-    // Helper
-    /////////
-    
-    // Random Int
-    func randomRangeInt(start: Int, to end: Int) -> Int {
-        var a = start
-        var b = end
-        
-        // Swap to prevent negative integer crashes
-        if a > b {
-            swap(&a, &b)
-        }
-        return Int(arc4random_uniform(UInt32(b - a + 1))) + a
-    }
-    
-    // Random Float
-    func randomRangeFloat(start: Float, to end: Float) -> Float {
-        let accuracy: Float = 10000.0
-        
-        var a: Int = Int(start * accuracy)
-        var b: Int = Int(end * accuracy)
-        
-        // Swap to prevent negative integer crashes
-        if a > b {
-            swap(&a, &b)
-        }
-        let temp: Float = Float(Int(arc4random_uniform(UInt32(b - a + 1))) + a) / accuracy
-
-        return temp
-    }
-    
-    // Lerp function for Float
-    func lerpFloat(_ v0: Float,_ v1: Float,_ t: Float) -> Float
-    {
-        return (1 - t) * v0 + t * v1;
-    }
-    
-    
-    // Lerp function for CGVector
-    func lerpVector(_ v0: CGVector,_ v1: CGVector,_ t: Float) -> CGVector
-    {
-        return CGVector(
-            dx: CGFloat(lerpFloat(Float(v0.dx), Float(v1.dx), t)),
-            dy: CGFloat(lerpFloat(Float(v0.dy), Float(v1.dy), t))
-            )
-    }
-    
-    // Lerp function for CGPoint
-    func lerpPoint(_ v0: CGPoint,_ v1: CGPoint,_ t: Float) -> CGPoint
-    {
-        return CGPoint(
-            x: CGFloat(lerpFloat(Float(v0.x), Float(v1.x), t)),
-            y: CGFloat(lerpFloat(Float(v0.y), Float(v1.y), t))
-        )
-    }
-    
-    // Degree to Rad
-    func degToRad(_ deg: Float) -> Float
-    {
-        return (3.14 / 180) * deg
-    }
-    
-    // Clamp function
-    func clamp<T: Comparable>(value: T, lower: T, upper: T) -> T {
-        return min(max(value, lower), upper)
     }
 
     /////////////////
@@ -440,9 +379,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     {
         let p: Float = sin(Float(t) * angleSpeed) / 2.0 + 0.5
         
-        currentAngle = degToRad(lerpFloat(minAngle, maxAngle, p))
+        currentAngle = Mathf.degToRad(Mathf.lerpFloat(minAngle, maxAngle, p))
         
-        arrowAnchor.zRotation = CGFloat(currentAngle) - CGFloat(degToRad(90))
+        arrowAnchor.zRotation = CGFloat(currentAngle) - CGFloat(Mathf.degToRad(90))
     }
     
     // Update power visual
@@ -450,7 +389,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     {
         let p: Float = sin(Float(t) * angleSpeed) / 2.0 + 0.5
         
-        currentPower = lerpFloat(minPower, maxPower, p)
+        currentPower = Mathf.lerpFloat(minPower, maxPower, p)
         
         powerBar.size = CGSize(width: powerBar.size.width, height: CGFloat((currentPower / maxPower) * Float(player.size.height)))
     }
@@ -473,6 +412,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     {
         // Disable physics on player
         //player.physicsBody?.isDynamic = false
+        
+        // Calculate distance from previous jump
+        distanceFromLastLanding = Float(Mathf.distance(previousLandingX, player.position.x))
+        
+        distancePoints(distanceFromLastLanding)
+        
+        // Save land position (X axis only)
+        previousLandingX = player.position.x
         
         // Set angle time to beginning
         angleTime = -1.5
@@ -501,6 +448,37 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             powerBar.isHidden = true
             arrowAnchor.isHidden = true
             break;
+        }
+    }
+    
+    // Coin Collected action
+    func coinCollected(_ c: SKSpriteNode)
+    {
+        playerData.addToScore(coinWorth)
+        
+        c.removeFromParent()
+    }
+    
+    func spawnCoinOverPosition(_ pos: CGPoint)
+    {
+        let coinYOffset: Float = 50.0
+        
+        let newCoin: SKSpriteNode = coin.copy() as! SKSpriteNode
+        
+        self.addChild(newCoin)
+        
+        newCoin.position = CGPoint(x: pos.x, y: CGFloat(Random.RangeFloat(start: Float(pos.y) + coinYOffset, to: Float(pos.y) + coinMaxHeight + coinYOffset)))
+    }
+    
+    func distancePoints(_ distance: Float)
+    {
+        if (distance / distanceWidth > 1.0)
+        {
+            var newScore: Int = 0
+            
+            newScore = Int(roundf(distance / distanceWidth)) * distanceWorth
+            
+            playerData.addToScore(newScore)
         }
     }
     

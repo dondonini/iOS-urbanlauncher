@@ -19,6 +19,8 @@
 		182BEE861E805DA8009CB5F6 /* CreditsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BEE851E805DA8009CB5F6 /* CreditsViewController.swift */; };
 		182BEE8D1E805F36009CB5F6 /* VerdictViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182BEE8C1E805F36009CB5F6 /* VerdictViewController.swift */; };
 		189FA3DB1EA543B7009F2B63 /* PlayerData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 189FA3DA1EA543B7009F2B63 /* PlayerData.swift */; };
+		A54C6F741EA9D40900A0D505 /* Mathf.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54C6F731EA9D40900A0D505 /* Mathf.swift */; };
+		A54C6F761EA9D50E00A0D505 /* Random.swift in Sources */ = {isa = PBXBuildFile; fileRef = A54C6F751EA9D50E00A0D505 /* Random.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		182BEE851E805DA8009CB5F6 /* CreditsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreditsViewController.swift; sourceTree = "<group>"; };
 		182BEE8C1E805F36009CB5F6 /* VerdictViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VerdictViewController.swift; sourceTree = "<group>"; };
 		189FA3DA1EA543B7009F2B63 /* PlayerData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerData.swift; sourceTree = "<group>"; };
+		A54C6F731EA9D40900A0D505 /* Mathf.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Mathf.swift; sourceTree = "<group>"; };
+		A54C6F751EA9D50E00A0D505 /* Random.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Random.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +101,8 @@
 				182BEE661E804E9B009CB5F6 /* GameViewController.swift */,
 				182BEE641E804E9B009CB5F6 /* GameScene.swift */,
 				189FA3DA1EA543B7009F2B63 /* PlayerData.swift */,
+				A54C6F731EA9D40900A0D505 /* Mathf.swift */,
+				A54C6F751EA9D50E00A0D505 /* Random.swift */,
 			);
 			name = Game;
 			sourceTree = "<group>";
@@ -197,7 +203,9 @@
 				182BEE651E804E9B009CB5F6 /* GameScene.swift in Sources */,
 				182BEE671E804E9B009CB5F6 /* GameViewController.swift in Sources */,
 				182BEE5F1E804E9B009CB5F6 /* AppDelegate.swift in Sources */,
+				A54C6F741EA9D40900A0D505 /* Mathf.swift in Sources */,
 				182BEE861E805DA8009CB5F6 /* CreditsViewController.swift in Sources */,
+				A54C6F761EA9D50E00A0D505 /* Random.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
